@@ -7,6 +7,7 @@ generate the search keywords for each patient
 import json
 from TrialGPT.api.generate_client import generate_client
 import sys
+from pathlib import Path
 
 client = generate_client()
 
@@ -33,7 +34,14 @@ if __name__ == "__main__":
 
 	outputs = {}
 	
-	with open(f"dataset/{corpus}/queries.jsonl", "r") as f:
+	queries_path = (
+    Path(__file__).resolve().parents[1]
+    / "dataset"
+    / corpus
+    / "queries.jsonl"
+)
+
+	with open(queries_path, "r") as f:
 		for line in f.readlines():
 			entry = json.loads(line)
 			messages = get_keyword_generation_messages(entry["text"])
@@ -49,5 +57,7 @@ if __name__ == "__main__":
 			
 			outputs[entry["_id"]] = json.loads(output)
 
-			with open(f"results/retrieval_keywords_{model}_{corpus}.json", "w") as f:
+			results_path = Path(__file__).resolve().parents[1] / "results"
+
+			with open(results_path / f"retrieval_keywords_{model}_{corpus}.json", "w") as f:
 				json.dump(outputs, f, indent=4)
