@@ -5,14 +5,12 @@ generate the search keywords for each patient
 """
 
 import json
-import os
-from openai import OpenAI
-
+from api import generate_client
 import sys
 
-client = OpenAI(
-	api_key=os.getenv("OPENAI_API_KEY"),
-)
+client = generate_client()
+
+
 
 
 def get_keyword_generation_messages(note):
