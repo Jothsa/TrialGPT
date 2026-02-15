@@ -1,3 +1,8 @@
 .venv/
 .env
 .DS_Store
+
+# Ignore large dataset files
+dataset/trec_2021/corpus.jsonl
+dataset/trec_2022/corpus.jsonl
+dataset/trial_info.json
