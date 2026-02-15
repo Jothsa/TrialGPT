@@ -5,12 +5,10 @@ generate the search keywords for each patient
 """
 
 import json
-from api import generate_client
+from TrialGPT.api.generate_client import generate_client
 import sys
 
 client = generate_client()
-
-
 
 
 def get_keyword_generation_messages(note):

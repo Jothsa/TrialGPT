@@ -9,7 +9,7 @@ from nltk.tokenize import sent_tokenize
 import os
 import sys
 
-from TrialGPT import trialgpt_matching 
+from trialgpt_matching.TrialGPT_match import trialgpt_matching 
 
 if __name__ == "__main__":
 	corpus = sys.argv[1]

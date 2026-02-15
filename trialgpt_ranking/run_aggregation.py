@@ -11,7 +11,7 @@ import os
 import sys
 import time
 
-from TrialGPT import trialgpt_aggregation
+from trialgpt_ranking.TrialGPT_ranking import trialgpt_aggregation
 
 if __name__ == "__main__":
 	corpus = sys.argv[1] 

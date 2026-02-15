@@ -15,5 +15,5 @@ def get_api_key(name="OPENAI_API_KEY"):
     if key:
         return key
 
-    # 3) Optional: fallback (prompt or error)
+    #  Fallback (prompt or error)
     raise RuntimeError(f"{name} not found in Colab secrets or environment variables")

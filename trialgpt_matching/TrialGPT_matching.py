@@ -7,7 +7,7 @@ TrialGPT-Matching main functions.
 import json
 from nltk.tokenize import sent_tokenize
 import time
-from api import generate_client
+from TrialGPT.api.generate_client import generate_client
 
 client = generate_client()
 

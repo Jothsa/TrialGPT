@@ -1,6 +1,6 @@
 import os
 from openai import OpenAI
-from api.get_api_key import get_api_key
+from TrialGPT.api.get_api_key import get_api_key
 
 def generate_client():
   gpt_api_key = get_api_key()
