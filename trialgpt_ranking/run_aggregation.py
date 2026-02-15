@@ -10,8 +10,11 @@ from nltk.tokenize import sent_tokenize
 import os
 import sys
 import time
+from pathlib import Path
 
-from trialgpt_ranking.TrialGPT_ranking import trialgpt_aggregation
+from TrialGPT.trialgpt_ranking.TrialGPT_ranking import trialgpt_aggregation
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 if __name__ == "__main__":
 	corpus = sys.argv[1] 
@@ -22,16 +25,16 @@ if __name__ == "__main__":
 	results = json.load(open(matching_results_path))
 
 	# loading the trial2info dict
-	trial2info = json.load(open("dataset/trial_info.json"))
+	trial2info = json.load(open(PROJECT_ROOT / "dataset" / "trial_info.json"))
 	
 	# loading the patient info
-	_, queries, _ = GenericDataLoader(data_folder=f"dataset/{corpus}/").load(split="test")
+	_, queries, _ = GenericDataLoader(data_folder=str(PROJECT_ROOT / "dataset" / corpus / "")).load(split="test")
 	
 	# output file path
-	output_path = f"results/aggregation_results_{corpus}_{model}.json"
+	output_path = PROJECT_ROOT / "results" / f"aggregation_results_{corpus}_{model}.json"
 
-	if os.path.exists(output_path):
-		output = json.load(open(output_path))
+	if output_path.exists():
+		output = json.load(open(str(output_path)))
 	else:
 		output = {}
 
@@ -59,7 +62,7 @@ if __name__ == "__main__":
 				if type(trial_results) is not dict:
 					output[patient_id][trial_id] = "matching result error"
 
-					with open(output_path, "w") as f:
+					with open(str(output_path), "w") as f:
 						json.dump(output, f, indent=4)
 
 					continue
@@ -71,7 +74,7 @@ if __name__ == "__main__":
 					result = trialgpt_aggregation(patient, trial_results, trial_info, model)
 					output[patient_id][trial_id] = result 
 
-					with open(output_path, "w") as f:
+					with open(str(output_path), "w") as f:
 						json.dump(output, f, indent=4)
 
 				except:

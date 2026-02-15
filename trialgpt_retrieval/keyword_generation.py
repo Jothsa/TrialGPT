@@ -41,7 +41,7 @@ if __name__ == "__main__":
     / "queries.jsonl"
 )
 
-	with open(queries_path, "r") as f:
+	with open(str(queries_path), "r") as f:
 		for line in f.readlines():
 			entry = json.loads(line)
 			messages = get_keyword_generation_messages(entry["text"])
@@ -59,5 +59,5 @@ if __name__ == "__main__":
 
 			results_path = Path(__file__).resolve().parents[1] / "results"
 
-			with open(results_path / f"retrieval_keywords_{model}_{corpus}.json", "w") as f:
+			with open(str(results_path / f"retrieval_keywords_{model}_{corpus}.json"), "w") as f:
 				json.dump(outputs, f, indent=4)

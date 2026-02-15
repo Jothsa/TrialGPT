@@ -8,20 +8,23 @@ import json
 from nltk.tokenize import sent_tokenize
 import os
 import sys
+from pathlib import Path
 
-from trialgpt_matching.TrialGPT_match import trialgpt_matching 
+from TrialGPT.trialgpt_matching.TrialGPT_matching import trialgpt_matching
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 if __name__ == "__main__":
 	corpus = sys.argv[1]
 	model = sys.argv[2] 
 	
-	dataset = json.load(open(f"dataset/{corpus}/retrieved_trials.json"))
+	dataset = json.load(open(PROJECT_ROOT / "dataset" / corpus / "retrieved_trials.json"))
 
-	output_path = f"results/matching_results_{corpus}_{model}.json" 
+	output_path = PROJECT_ROOT / "results" / f"matching_results_{corpus}_{model}.json" 
 
 	# Dict{Str(patient_id): Dict{Str(label): Dict{Str(trial_id): Str(output)}}}
-	if os.path.exists(output_path):
-		output = json.load(open(output_path))
+	if output_path.exists():
+		output = json.load(open(str(output_path)))
 	else:
 		output = {}
 
@@ -53,7 +56,7 @@ if __name__ == "__main__":
 					results = trialgpt_matching(trial, patient, model)
 					output[patient_id][label][trial_id] = results
 
-					with open(output_path, "w") as f:
+					with open(str(output_path), "w") as f:
 						json.dump(output, f, indent=4)
 
 				except Exception as e:

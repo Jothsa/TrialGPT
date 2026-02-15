@@ -10,18 +10,21 @@ import json
 from nltk import word_tokenize
 import numpy as np
 import os
+from pathlib import Path
 from rank_bm25 import BM25Okapi
 import sys
 import tqdm
 import torch
 from transformers import AutoTokenizer, AutoModel
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
 def get_bm25_corpus_index(corpus):
-	corpus_path = os.path.join(f"trialgpt_retrieval/bm25_corpus_{corpus}.json")
+	corpus_path = PROJECT_ROOT / "trialgpt_retrieval" / f"bm25_corpus_{corpus}.json"
 
 	# if already cached then load, otherwise build
-	if os.path.exists(corpus_path):
-		corpus_data = json.load(open(corpus_path))
+	if corpus_path.exists():
+		corpus_data = json.load(open(str(corpus_path)))
 		tokenized_corpus = corpus_data["tokenized_corpus"]
 		corpus_nctids = corpus_data["corpus_nctids"]
 
@@ -29,7 +32,7 @@ def get_bm25_corpus_index(corpus):
 		tokenized_corpus = []
 		corpus_nctids = []
 
-		with open(f"dataset/{corpus}/corpus.jsonl", "r") as f:
+		with open(str(PROJECT_ROOT / "dataset" / corpus / "corpus.jsonl"), "r") as f:
 			for line in f.readlines():
 				entry = json.loads(line)
 				corpus_nctids.append(entry["_id"])
@@ -47,7 +50,7 @@ def get_bm25_corpus_index(corpus):
 			"corpus_nctids": corpus_nctids,
 		}
 
-		with open(corpus_path, "w") as f:
+		with open(str(corpus_path), "w") as f:
 			json.dump(corpus_data, f, indent=4)
 	
 	bm25 = BM25Okapi(tokenized_corpus)
@@ -56,13 +59,13 @@ def get_bm25_corpus_index(corpus):
 
 			
 def get_medcpt_corpus_index(corpus):
-	corpus_path = f"trialgpt_retrieval/{corpus}_embeds.npy" 
-	nctids_path = f"trialgpt_retrieval/{corpus}_nctids.json"
+	corpus_path = PROJECT_ROOT / "trialgpt_retrieval" / f"{corpus}_embeds.npy"
+	nctids_path = PROJECT_ROOT / "trialgpt_retrieval" / f"{corpus}_nctids.json"
 
 	# if already cached then load, otherwise build
-	if os.path.exists(corpus_path):
-		embeds = np.load(corpus_path)
-		corpus_nctids = json.load(open(nctids_path)) 
+	if corpus_path.exists():
+		embeds = np.load(str(corpus_path))
+		corpus_nctids = json.load(open(str(nctids_path))) 
 
 	else:
 		embeds = []
@@ -71,7 +74,7 @@ def get_medcpt_corpus_index(corpus):
 		model = AutoModel.from_pretrained("ncbi/MedCPT-Article-Encoder").to("cuda")
 		tokenizer = AutoTokenizer.from_pretrained("ncbi/MedCPT-Article-Encoder")
 
-		with open(f"dataset/{corpus}/corpus.jsonl", "r") as f:
+		with open(str(PROJECT_ROOT / "dataset" / corpus / "corpus.jsonl"), "r") as f:
 			print("Encoding the corpus")
 			for line in tqdm.tqdm(f.readlines()):
 				entry = json.loads(line)
@@ -96,8 +99,8 @@ def get_medcpt_corpus_index(corpus):
 
 		embeds = np.array(embeds)
 
-		np.save(corpus_path, embeds)
-		with open(nctids_path, "w") as f:
+		np.save(str(corpus_path), embeds)
+		with open(str(nctids_path), "w") as f:
 			json.dump(corpus_nctids, f, indent=4)
 
 	index = faiss.IndexFlatIP(768)
@@ -126,10 +129,10 @@ if __name__ == "__main__":
 	N = 2000 
 
 	# loading the qrels
-	_, _, qrels = GenericDataLoader(data_folder=f"dataset/{corpus}/").load(split="test")
+	_, _, qrels = GenericDataLoader(data_folder=str(PROJECT_ROOT / "dataset" / corpus / "")).load(split="test")
 
 	# loading all types of queries
-	id2queries = json.load(open(f"dataset/{corpus}/id2queries.json"))
+	id2queries = json.load(open(PROJECT_ROOT / "dataset" / corpus / "id2queries.json"))
 
 	# loading the indices
 	bm25, bm25_nctids = get_bm25_corpus_index(corpus)
@@ -140,12 +143,12 @@ if __name__ == "__main__":
 	tokenizer = AutoTokenizer.from_pretrained("ncbi/MedCPT-Query-Encoder")
 	
 	# then conduct the searches, saving top 1k
-	output_path = f"results/qid2nctids_results_{q_type}_{corpus}_k{k}_bm25wt{bm25_wt}_medcptwt{medcpt_wt}_N{N}.json"
+	output_path = PROJECT_ROOT / "results" / f"qid2nctids_results_{q_type}_{corpus}_k{k}_bm25wt{bm25_wt}_medcptwt{medcpt_wt}_N{N}.json"
 	
 	qid2nctids = {}
 	recalls = []
 
-	with open(f"dataset/{corpus}/queries.jsonl", "r") as f:
+	with open(PROJECT_ROOT / "dataset" / corpus / "queries.jsonl", "r") as f:
 		for line in tqdm.tqdm(f.readlines()):
 			entry = json.loads(line)
 			query = entry["text"]
@@ -221,5 +224,4 @@ if __name__ == "__main__":
 			actual_sum = sum([qrels[qid].get(nctid, 0) for nctid in top_nctids])
 			recalls.append(actual_sum / truth_sum)
 	
-	with open(output_path, "w") as f:
-		json.dump(qid2nctids, f, indent=4)
+	with open(str(output_path), "w") as f:
