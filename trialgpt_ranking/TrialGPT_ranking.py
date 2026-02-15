@@ -106,7 +106,7 @@ def trialgpt_aggregation(patient: str, trial_results: dict, trial_info: dict, mo
 	response = client.chat.completions.create(
 		model=model,
 		messages=messages,
-		temperature=0,
+		#temperature=0,
 	)
 	result = response.choices[0].message.content.strip()
 	result = result.strip("`").strip("json")

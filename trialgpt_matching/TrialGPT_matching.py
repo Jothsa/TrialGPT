@@ -98,7 +98,7 @@ def trialgpt_matching(trial: dict, patient: str, model: str):
 		response = client.chat.completions.create(
 			model=model,
 			messages=messages,
-			temperature=0,
+			#temperature=0,
 		)
 
 		message = response.choices[0].message.content.strip()
