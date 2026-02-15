@@ -225,3 +225,4 @@ if __name__ == "__main__":
 			recalls.append(actual_sum / truth_sum)
 	
 	with open(str(output_path), "w") as f:
+		json.dump(qid2nctids, f, indent=4)
