@@ -6,3 +6,6 @@
 dataset/trec_2021/corpus.jsonl
 dataset/trec_2022/corpus.jsonl
 dataset/trial_info.json
+
+# Ignore generated results
+results/
