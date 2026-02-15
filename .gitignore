@@ -11,3 +11,5 @@ dataset/trial_info.json
 results/
 # generated during retrieval I think
 trialgpt_retrieval/*.json
+
+__pycache__/
