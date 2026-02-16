@@ -17,6 +17,8 @@ def get_keyword_generation_messages(note):
 
 	prompt =  f"Here is the patient description: \n{note}\n\nJSON output:"
 
+	print("PROMPT:", prompt)
+
 	messages = [
 		{"role": "system", "content": system},
 		{"role": "user", "content": prompt}
@@ -26,7 +28,7 @@ def get_keyword_generation_messages(note):
 
 
 if __name__ == "__main__":
-	# the corpus: trec_2021, trec_2022, or sigir
+	# the corpus: trec_2021, trec_2022, sigir, or synthea
 	corpus = sys.argv[1]
 
 	# the model index to use
@@ -42,22 +44,47 @@ if __name__ == "__main__":
 )
 
 	with open(str(queries_path), "r") as f:
-		for line in f.readlines():
-			entry = json.loads(line)
-			messages = get_keyword_generation_messages(entry["text"])
+		note = "";
+		if corpus == "synthea":
+				data = json.load(f)
+				for entry in data:
+					note = json.dumps(entry, indent=2)
+					messages = get_keyword_generation_messages(note)
+					messages = get_keyword_generation_messages(note)
 
-			response = client.chat.completions.create(
-				model=model,
-				messages=messages,
-				#temperature=0,
-			)
+					response = client.chat.completions.create(
+						model=model,
+						messages=messages,
+						#temperature=0,
+					)
 
-			output = response.choices[0].message.content
-			output = output.strip("`").strip("json")
-			
-			outputs[entry["_id"]] = json.loads(output)
+					output = response.choices[0].message.content
+					output = output.strip("`").strip("json")
+					
+					outputs[entry["_id"]] = json.loads(output)
 
-			results_path = Path(__file__).resolve().parents[1] / "results"
+					results_path = Path(__file__).resolve().parents[1] / "results"
 
-			with open(str(results_path / f"retrieval_keywords_{model}_{corpus}.json"), "w") as f:
-				json.dump(outputs, f, indent=4)
+					with open(str(results_path / f"retrieval_keywords_{model}_{corpus}.json"), "w") as f:
+						json.dump(outputs, f, indent=4)
+		else:
+			for line in f.readlines():
+				entry = json.loads(line)
+				note = entry["text"]
+				messages = get_keyword_generation_messages(note)
+
+				response = client.chat.completions.create(
+					model=model,
+					messages=messages,
+					#temperature=0,
+				)
+
+				output = response.choices[0].message.content
+				output = output.strip("`").strip("json")
+				
+				outputs[entry["_id"]] = json.loads(output)
+
+				results_path = Path(__file__).resolve().parents[1] / "results"
+
+				with open(str(results_path / f"retrieval_keywords_{model}_{corpus}.json"), "w") as f:
+					json.dump(outputs, f, indent=4)
